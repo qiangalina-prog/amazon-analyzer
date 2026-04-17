@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const issuesContainer = document.getElementById('issues-list');
     const scoreValue = document.getElementById('score-value');
 
-    // 状态切换函数
     function setLoading(isLoading) {
         analyzeBtn.disabled = isLoading;
         if (isLoading) {
@@ -51,34 +50,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function callGeminiAPI(listingText, apiKey) {
-        // [核心配置] 锁定 2026 年 Gemini 2.5 Flash 稳定版
+        // 【看这里】这里必须是反引号，就像下面这样
         const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
-        const prompt = `You are a brutal Amazon optimization expert. Critique this listing. OUTPUT PURE JSON ONLY. NO MARKDOWN.
+        const prompt = `You are a brutal Amazon optimization expert. Critique this listing. Output PURE JSON ONLY. 
         Format: { "score": 45, "issues": [ { "severity": "critical", "title": "Problem", "description": "Why it fails" } ] }
-        Listing to analyze: "${listingText}"`;
+        Listing: "${listingText}"`;
 
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { temperature: 0.2 }
+                contents: [{ parts: [{ text: prompt }] }]
             })
         });
 
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.error?.message || "Check your API key or network.");
+            throw new Error(err.error?.message || "Invalid API Key or Network error.");
         }
 
         const data = await response.json();
-        
-        // 增加安全检查：防止 AI 拒绝回答
-        if (!data.candidates || !data.candidates[0].content) {
-            throw new Error("AI refused to analyze. Try different listing text.");
-        }
-
         const textContent = data.candidates[0].content.parts[0].text;
         const cleanJsonStr = textContent.replace(/```json/gi, '').replace(/```/g, '').trim();
         return JSON.parse(cleanJsonStr);
@@ -93,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = isCritical ? '🔴' : '🟡';
             const cardClass = isCritical ? 'critical' : 'warning';
             
+            // 【看这里】这里也必须是反引号，不能是普通单引号
             const cardHtml = `
                 <div class="issue-card ${cardClass}">
                     <div class="issue-icon">${icon}</div>
@@ -108,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
         reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     
-    // 收银逻辑
     const checkoutBtn = document.querySelector('.checkout-btn');
     if(checkoutBtn) {
         checkoutBtn.addEventListener('click', () => {
