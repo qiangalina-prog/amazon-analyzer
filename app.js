@@ -50,19 +50,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function callGeminiAPI(listingText, apiKey) {
-        // 【看这里】这里必须是反引号，就像下面这样
+        // [核心配置] 注意：下面的网址左右两侧用的都是反引号 `
         const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
-        const prompt = `You are a brutal Amazon optimization expert. Critique this listing. Output PURE JSON ONLY. 
-        Format: { "score": 45, "issues": [ { "severity": "critical", "title": "Problem", "description": "Why it fails" } ] }
+        const prompt = `You are an aggressive Amazon CRO expert. Critique this listing. Output PURE JSON ONLY. 
+        Format: { "score": 45, "issues": [ { "severity": "critical", "title": "...", "description": "..." } ] }
         Listing: "${listingText}"`;
+
+        const requestBody = {
+            contents: [{ parts: [{ text: prompt }] }]
+        };
 
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
@@ -85,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const icon = isCritical ? '🔴' : '🟡';
             const cardClass = isCritical ? 'critical' : 'warning';
             
-            // 【看这里】这里也必须是反引号，不能是普通单引号
+            // 注意：下面的 HTML 模板也必须用反引号 `
             const cardHtml = `
                 <div class="issue-card ${cardClass}">
                     <div class="issue-icon">${icon}</div>
