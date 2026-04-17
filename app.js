@@ -8,78 +8,57 @@ document.addEventListener('DOMContentLoaded', () => {
     const issuesContainer = document.getElementById('issues-list');
     const scoreValue = document.getElementById('score-value');
 
+    function setLoading(isLoading) {
+        analyzeBtn.disabled = isLoading;
+        if (isLoading) {
+            btnText.classList.add('hidden');
+            loader.classList.remove('hidden');
+            reportSection.classList.add('hidden');
+        } else {
+            btnText.classList.remove('hidden');
+            loader.classList.add('hidden');
+        }
+    }
+
     analyzeBtn.addEventListener('click', async () => {
         const inputVal = textarea.value.trim();
         const apiKey = apiKeyInput.value.trim();
         
-        if (!inputVal) {
-            flashError(textarea);
-            return;
-        }
-
+        if (!inputVal) return flashError(textarea);
         if (!apiKey) {
-            alert("Please provide a Gemini API Key to run the diagnosis.");
-            flashError(apiKeyInput);
-            return;
+            alert("Please provide a Gemini API Key.");
+            return flashError(apiKeyInput);
         }
 
-        // UX: Show loading state
-        analyzeBtn.disabled = true;
-        btnText.classList.add('hidden');
-        loader.classList.remove('hidden');
-        reportSection.classList.add('hidden');
-        issuesContainer.innerHTML = ''; // clear previous
+        setLoading(true);
+        issuesContainer.innerHTML = ''; 
 
         try {
             const diagnosis = await callGeminiAPI(inputVal, apiKey);
             renderDiagnosis(diagnosis);
         } catch (e) {
-            alert("Error calling AI: " + e.message);
-            analyzeBtn.disabled = false;
-            btnText.classList.remove('hidden');
-            loader.classList.add('hidden');
+            console.error(e);
+            alert("Error: " + e.message);
+        } finally {
+            setLoading(false);
         }
     });
 
-    function flashError(element) {
-        element.style.borderColor = '#EF4444';
-        setTimeout(() => {
-            element.style.borderColor = '';
-        }, 1000);
+    function flashError(el) {
+        el.style.borderColor = '#EF4444';
+        setTimeout(() => el.style.borderColor = '', 1000);
     }
 
     async function callGeminiAPI(listingText, apiKey) {
-        // We use gemini-1.5-flash as it's faster and free
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // [2026 最终修正] 锁定 v1 稳定接口与 gemini-2.5-flash 模型
+        const endpoint = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
-        const prompt = `You are an aggressive, brutally honest Amazon eCommerce Conversion Rate Optimization (CRO) expert. \n
-Critique the following Amazon product listing. You are extremely harsh on features vs benefits, keyword missing, and poor readability.
-Do NOT rewrite the listing for them (they must pay for that). Only provide a devastating diagnosis.
-Output your response as PURE JSON without any markdown formatting wrappers like \`\`\`json. 
-
-Format exactly as:
-{
-    "score": 45, // an integer from 0 to 100
-    "issues": [
-        {
-            "severity": "critical", // critical or warning
-            "title": "Short title of the problem",
-            "description": "Brutal explanation of why this loses sales."
-        }
-    ]
-}
-
-Ensure there are exactly 2 issues in the list (1 critical, 1 warning) to tease the user.
-
-Here is the listing:
-"${listingText}"`;
+        const prompt = `You are a brutal Amazon optimization expert. Critique this listing. Output PURE JSON ONLY. 
+        Format: { "score": 45, "issues": [ { "severity": "critical", "title": "Problem", "description": "Why it fails" } ] }
+        Listing: "${listingText}"`;
 
         const requestBody = {
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-                temperature: 0.3,
-                maxOutputTokens: 500
-            }
+            contents: [{ parts: [{ text: prompt }] }]
         };
 
         const response = await fetch(endpoint, {
@@ -90,28 +69,19 @@ Here is the listing:
 
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.error?.message || "Unknown API Error");
+            throw new Error(err.error?.message || "Invalid API Key or Network error.");
         }
 
         const data = await response.json();
         const textContent = data.candidates[0].content.parts[0].text;
-        
-        // Safety cleanup for potential markdown markdown blocks
         const cleanJsonStr = textContent.replace(/```json/gi, '').replace(/```/g, '').trim();
         return JSON.parse(cleanJsonStr);
     }
 
     function renderDiagnosis(diagnosis) {
-        // UX: Hide loader
-        analyzeBtn.disabled = false;
-        btnText.classList.remove('hidden');
-        loader.classList.add('hidden');
-
-        // Update score
         scoreValue.textContent = diagnosis.score + '/100';
         scoreValue.className = 'score-value ' + (diagnosis.score < 60 ? 'error' : 'warning');
 
-        // Render cards
         diagnosis.issues.forEach(issue => {
             const isCritical = issue.severity === 'critical';
             const icon = isCritical ? '🔴' : '🟡';
@@ -124,20 +94,19 @@ Here is the listing:
                         <h3>${issue.title}</h3>
                         <p>${issue.description}</p>
                     </div>
-                </div>
-            `;
+                </div>`;
             issuesContainer.insertAdjacentHTML('beforeend', cardHtml);
         });
 
-        // Show report
         reportSection.classList.remove('hidden');
         reportSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     
-    // Checkout logic
     const checkoutBtn = document.querySelector('.checkout-btn');
-    checkoutBtn.addEventListener('click', () => {
-        // 厂长注意：收银传送门已开启！点击后将直接跳转到你的专业版 Gumroad 结账页
-        window.location.href = "https://qiangalina.gumroad.com/l/amazon-listing-pro";
-    });
+    if(checkoutBtn) {
+        checkoutBtn.addEventListener('click', () => {
+            window.location.href = "https://qiangalina.gumroad.com/l/amazon-listing-pro";
+        });
+    }
 });
+
