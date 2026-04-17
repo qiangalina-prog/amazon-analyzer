@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Listing Analyzer - AI Diagnosis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-grid"></div>
+    <div class="blob-1"></div>
+    <div class="blob-2"></div>
+
+    <main class="container">
+        <header class="hero">
+            <div class="badge">AI-Powered Optimization 🚀</div>
+            <h1>Stop losing sales.<br><span class="text-gradient">Fix your Amazon Listing in 3 seconds.</span></h1>
+            <p>Paste your current product title and bullets. Our AI identifies why buyers are bouncing and provides a surgical optimization report.</p>
+        </header>
+
+        <section class="analyzer-interface glass-card">
+            <div class="api-setup">
+                <input type="password" id="api-key" class="api-input" placeholder="Enter your FREE Gemini API Key to run (BYOK)..." />
+                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="help-link">Need one? Get it free in 5 seconds</a>
+            </div>
+            <textarea id="listing-input" placeholder="Paste your Amazon Product Title and Bullet Points here...
+Example:
+Wireless Earbuds Bluetooth 5.3 Headphones with Mic 40H Playtime
+- Deep Bass
+- IPX7 Waterproof
+- Noise Cancelling" rows="6"></textarea>
+            
+            <button id="analyze-btn" class="primary-btn">
+                <span class="btn-text">Generate Diagnosis</span>
+                <span class="loader hidden"></span>
+            </button>
+        </section>
+
+        <!-- Diagnosis Result State (Hidden by default) -->
+        <section id="diagnosis-result" class="diagnosis-report hidden">
+            <div class="report-header">
+                <h2>Analysis Complete</h2>
+                <div class="score-badge">
+                    <span class="score-label">Listing Score</span>
+                    <span id="score-value" class="score-value error">42/100</span>
+                </div>
+            </div>
+
+            <!-- Dynamic issues list rendered by JS -->
+            <div class="issues-list" id="issues-list">
+            </div>
+
+            <!-- Paywall -->
+            <div class="paywall-card glass-card premium">
+                <div class="lock-icon">🔒</div>
+                <h3>Unlock Full Optimization Strategy</h3>
+                <p>We found 5 more critical conversion killers. Get the exact AI-rewritten, SEO-optimized title and bullet points to copy-paste into Seller Central.</p>
+                <div class="price-strike"><strike>$49.00</strike> <span>$9.90</span></div>
+                <button class="checkout-btn">Unlock Full Report ($9.90)</button>
+                <p class="guarantee">Instant access. 95% of users report higher CTR within 24 hours.</p>
+            </div>
+            
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
